@@ -10,24 +10,77 @@ app.use(express.json())
 
 
 app.post('/usuarios', async (req, res) => {
-    
-   await prisma.user.create({
-     data: {
 
-        email:req.body.email,
-        name: req.body.name,
-        age: req.body.age
-     }
-   })
+  await prisma.user.create({
+    data: {
 
-    res.status(201).json(req.body)
+      email: req.body.email,
+      name: req.body.name,
+      age: req.body.age
+    }
+  })
+
+  res.status(201).json(req.body)
 })
+
 
 app.get('/usuarios', async (req, res) => {
-    const users = await prisma.user.findMany()
 
-    res.status(200).json(users)
+  let users = []
+
+  if (req.query) {
+    users = await prisma.user.findMany({
+      where: {
+        name: req.query.name,
+        email: req.query.email,
+        age: req.query.age
+
+      }
+    })
+
+  } else {
+
+    const users = await prisma.user.findMany()
+  }
+
+
+
+  res.status(200).json(users)
 })
+
+app.put('/usuarios/:id', async (req, res) => {
+
+  await prisma.user.update({
+    where: {
+      id: req.params.id
+    },
+
+    data: {
+
+      email: req.body.email,
+      name: req.body.name,
+      age: req.body.age
+    }
+  })
+
+  res.status(201).json(req.body)
+})
+
+app.delete('/usuarios/:id', async (req, res) => {
+  try {
+    const user = await prisma.user.delete({
+      where: {
+        id: req.params.id
+      }
+    });
+
+    res.status(200).json({ message: 'Usuário deletado com sucesso!', user });
+  } catch (error) {
+    console.error("Erro ao deletar usuário:", error);
+
+    res.status(500).json({ error: "Erro ao deletar usuário. Verifique se o ID está correto." });
+  }
+});
 
 app.listen(3000)
 
